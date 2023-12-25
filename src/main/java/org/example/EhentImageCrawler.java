@@ -8,17 +8,16 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class Rule34ImageCrawler {
+public class EhentImageCrawler {
 
     public static void main(String[] args) {
         ImageCrawler imageCrawler = new ImageCrawler();
         ArrayList<String> urls = new ArrayList<>();
-        for (int i=0;i<5;i++){
-            urls.add("https://rule34.xxx/index.php?page=post&s=list&tags=to_love-ru++cum+="+i*42);
-        }
-//        urls.add("https://rule34.xxx/index.php?page=post&s=list&tags=yorha_2b+");
-//        urls.add("");
-//        urls.add("");
+        urls.add("https://e-hentai.org/g/2611733/6ecc9a9f17/");
+
+
+        urls.add("https://e-hentai.org/g/2611733/6ecc9a9f17/?p=1");
+        urls.add("https://e-hentai.org/g/2611733/6ecc9a9f17/?p=2");
 //        urls.add("");
 //        urls.add("");
 //        urls.add("");
@@ -33,22 +32,21 @@ public class Rule34ImageCrawler {
 //        urls.add("");
 //        urls.add("");
         for (String url : urls) {
+            System.out.println(url);
             try {
                 Document document = Jsoup.connect(url).get();
-                Elements spanElements = document.select("div#gdtm");
+                Elements spanElements = document.select("div.gdtm"); // Lấy tất cả các thẻ <span>.
 
                 for (Element spanElement : spanElements) {
-                    Element anchorElement = spanElement.select("a").first(); // Lấy thẻ <a> đầu tiên bên trong thẻ <span>.
+                    Element anchorElement = spanElement.select("a").first();
 
                     if (anchorElement != null) {
                         String link = anchorElement.absUrl("href"); // Lấy đường dẫn từ thẻ <a>.
-                        System.out.println("Link in span: " + link);
                         try {
                             Document doc = Jsoup.connect(link).get();
-                            Elements imgElements = doc.select("img");
+                            Elements imgElements = doc.select("img#img");
                             for (Element imgElement : imgElements) {
                                 String imageUrl = imgElement.absUrl("src");
-                                System.out.println("Image URL: " + imageUrl);
                                 imageCrawler.imageDownloader2(imageUrl);
 
                             }
@@ -61,7 +59,6 @@ public class Rule34ImageCrawler {
                 e.printStackTrace();
             }
         }
-
 
     }
 }

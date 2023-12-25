@@ -5,8 +5,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class UrlCrawler {
     private static int maxUrlLength;
@@ -24,17 +23,44 @@ public class UrlCrawler {
     }
 
     public static void main(String[] args) {
-        String urlToCrawl = "https://e-hentai.org/g/2600969/72ab3db900/";
-        try {
-            Set<String> allUrls = crawlUrls(urlToCrawl);
-            for (String url : allUrls) {
-                System.out.println(url);
-                ImageCrawler imageCrawler = new ImageCrawler();
-                imageCrawler.crawlImages(url);
+        List<String> listUrl = new ArrayList<>();
+        listUrl.add("https://e-hentai.org/g/2743835/f63692ecce/");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+        listUrl.add("");
+
+
+        for (String urlToCrawl : listUrl) {
+            try {
+                Set<String> allUrls = crawlUrls(urlToCrawl);
+                for (String url : allUrls) {
+                    System.out.println(url);
+                    ImageCrawler imageCrawler = new ImageCrawler();
+                    imageCrawler.crawlImages(url);
+
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+
     }
 }
 
