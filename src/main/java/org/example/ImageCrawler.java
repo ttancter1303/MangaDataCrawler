@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.action.FolderProvider;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -22,6 +23,12 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class ImageCrawler {
+    private FolderProvider folderProvider;
+
+    public ImageCrawler(FolderProvider folderProvider) {
+        this.folderProvider = folderProvider;
+    }
+
     private static final String USER_AGENT = "Mozilla/5.0 (compatible; YandexAccessibilityBot/3.0; +http://yandex.com/bots)";
     HttpClient httpClient;
     HttpGet request;
@@ -30,7 +37,7 @@ public class ImageCrawler {
     Elements imageElements;
     HttpResponse response;
     HttpEntity entity;
-    String folderPath = "E:/DEV/ImageCrawler/image";
+    String folderPath = folderProvider.getFolderPath();
     public void crawlImages(String url) throws IOException {
         Set<String> imageUrls = new HashSet<>();
         try {
@@ -77,10 +84,9 @@ public class ImageCrawler {
                     }
                 }
             }
-
             EntityUtils.consume(entity);
         } catch (IOException e) {
-//            e.printStackTrace();
+            e.printStackTrace();
         }
     }
     public void imageDownloader2(String imageUrl){
