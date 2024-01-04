@@ -1,6 +1,10 @@
 package org.example;
 
 import org.example.action.FolderProvider;
+import org.example.model.Author;
+import org.example.model.Chapter;
+import org.example.model.Manga;
+import org.example.model.Tag;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -11,62 +15,45 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class MangaDetailCrawler implements FolderProvider {
-    DownloadChapter downloadChapter;
+
     String titleText;
     String chapterTitleText;
-    ImageCrawler imageCrawler;
-    public void getUrlChapter(String url){
-            try {
-                Document document = Jsoup.connect(url).get();
-                Elements spanElements = document.select("artical");
+    Author author;
+    Tag tag;
+    Manga manga;
 
-                for (Element spanElement : spanElements) {
-                    Element anchorElement = spanElement.select("a").first(); // Lấy thẻ <a> đầu tiên bên trong thẻ <span>.
 
-                    if (anchorElement != null) {
-                        String link = anchorElement.absUrl("href"); // Lấy đường dẫn từ thẻ <a>.
-                        System.out.println("Link in span: " + link);
-                        try {
-                            Document doc = Jsoup.connect(link).get();
-                            Elements imgElements = doc.select("img");
-                            for (Element imgElement : imgElements) {
-                                String imageUrl = imgElement.absUrl("src");
-                                if (!imageUrl.endsWith("0.jpg") && !imageUrl.endsWith("1.jpg")) {
-                                    System.out.println("Url img: " + imageUrl);
-                                    imageCrawler = new ImageCrawler(this);
-                                    imageCrawler.imageDownloader2(imageUrl);
-                                }
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+
+    public void getUrlChapterV2(String url) {
+        try {
+            // Kiểm tra nếu url là "javascript:void(0)", thì bỏ qua
+            if ("javascript:void(0)".equals(url)) {
+                System.out.println("Skipping invalid URL: " + url);
+                return;
             }
 
-    }
-    public void getUrlChapterV2(String url){
-            try {
-                Document document = Jsoup.connect(url).get();
-                Elements articalElements = document.select("article#content"); // Select the article with id 'content'
+            Document document = Jsoup.connect(url).get();
+            Elements articleElements = document.select("article#content"); // Select the article with id 'content'
 
-                for (Element articalElement : articalElements) {
-                    Elements imgElements = articalElement.select("img");
+            for (Element articleElement : articleElements) {
+                Elements imgElements = articleElement.select("img");
 
-                    for (Element imgElement : imgElements) {
-                        String imageUrl = imgElement.absUrl("src");
-                        System.out.println("Image URL: " + imageUrl);
-                        imageCrawler = new ImageCrawler(this);
-                        imageCrawler.imageDownloader2(imageUrl);
-                    }
+                for (Element imgElement : imgElements) {
+                    String imageUrl = imgElement.absUrl("src");
+                    System.out.println("Image URL: " + imageUrl);
+
+                    // Sử dụng đường dẫn folder từ FolderProvider
+//                    String folderPath = getFolderPath(titleText, chapterTitleText);
+                    ImageCrawler imageCrawler = new ImageCrawler(this, titleText,chapterTitleText);
+                    imageCrawler.imageDownloader2(imageUrl);
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-    public void mangaCrawler(){
+
+    public void mangaCrawler() {
         File mangaFolder = new File("manga");
         if (!mangaFolder.exists()) {
             mangaFolder.mkdir();
@@ -74,6 +61,7 @@ public class MangaDetailCrawler implements FolderProvider {
         ArrayList<String> urlList = new ArrayList<>();
         urlList.add("https://blogtruyen.vn/33314/zankokuna-kami-ga-shihaisuru");
         urlList.add("https://blogtruyen.vn/33396/o-long-vien-linh-vat-song");
+
         for (String url : urlList) {
             try {
                 Document document = Jsoup.connect(url).get();
@@ -81,12 +69,21 @@ public class MangaDetailCrawler implements FolderProvider {
                 Elements content = document.select("div.content");
                 Element titleElement = document.selectFirst("span.title");
                 Element listWrapElement = document.selectFirst("div.list-chapters");
-                System.out.println(content.text());
-                if (entryTitle != null||titleElement != null) {
+                Element authorElement = document.selectFirst("<a.color-green label label-info");
+
+
+                if (authorElement != null) {
+                    String authorName = authorElement.text();
+                    author = new Author(authorName);
+                    manga = new Manga();
+                    manga.setAuthor(author);
+                    manga.setDescription(content.text());
+                }
+
+                if (entryTitle != null || titleElement != null) {
                     titleText = entryTitle.text();
                     File mangaEntryFolder = new File(mangaFolder, titleText);
                     mangaEntryFolder.mkdir();
-
 
                     if (listWrapElement != null) {
                         Elements linkElements = listWrapElement.select("a");
@@ -94,15 +91,13 @@ public class MangaDetailCrawler implements FolderProvider {
                             chapterTitleText = linkElement.text();
                             String chapterUrl = linkElement.absUrl("href");
 
-                            File chapterEntryFolder = new File(mangaEntryFolder,chapterTitleText);
+                            File chapterEntryFolder = new File(mangaEntryFolder, chapterTitleText);
 
                             chapterEntryFolder.mkdirs();
                             System.out.println("Đã tạo thư mục: " + chapterEntryFolder.getAbsolutePath());
                             System.out.println("Đường dẫn chap: " + chapterUrl);
-                            getFolderPath(titleText,chapterTitleText);
                             getUrlChapterV2(chapterUrl);
                         }
-
                     } else {
                         System.out.println("Không tìm thấy thẻ div có class 'list-wrap'");
                     }
@@ -117,12 +112,13 @@ public class MangaDetailCrawler implements FolderProvider {
     }
 
     @Override
-    public String getFolderPath() {
-        return null;
+    public String getFolderPath(String mangaTitle, String chapterNumber) {
+        String folderPath = "manga/" + mangaTitle + "/" + chapterNumber + "/";
+        return folderPath;
     }
 
     @Override
-    public String getFolderPath(String mangaTitle, String chapterNumber) {
-        return "/manga/"+mangaTitle+"/" + chapterNumber + "/";
+    public void getDataManga(String content, ArrayList<Tag> listTag, ArrayList<Chapter> listChapter, Author author) {
+
     }
 }

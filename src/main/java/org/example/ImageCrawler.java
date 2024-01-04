@@ -5,44 +5,33 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
-import java.util.Scanner;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 public class ImageCrawler {
     private FolderProvider folderProvider;
+    private String mangaTitle;
+    private String chapterNumber;
 
-    public ImageCrawler(FolderProvider folderProvider) {
+    public ImageCrawler(FolderProvider folderProvider, String mangaTitle, String chapterNumber) {
         this.folderProvider = folderProvider;
+        this.mangaTitle = mangaTitle;
+        this.chapterNumber = chapterNumber;
     }
 
     private static final String USER_AGENT = "Mozilla/5.0 (compatible; YandexAccessibilityBot/3.0; +http://yandex.com/bots)";
-    HttpClient httpClient;
-    HttpGet request;
-    Document document;
-    Elements imgElements;
-    Elements imageElements;
-    HttpResponse response;
-    HttpEntity entity;
-    String folderPath = folderProvider.getFolderPath();
-    public void crawlImages(String url) throws IOException {
-        Set<String> imageUrls = new HashSet<>();
+
+    public void crawlImages(String url) {
         try {
-            document = Jsoup.connect(url).userAgent(USER_AGENT).get();
-            imgElements = document.select("img#img");
+            Set<String> imageUrls = new HashSet<>();
+            Document document = Jsoup.connect(url).userAgent(USER_AGENT).get();
+            Elements imgElements = document.select("img#img");
 
             for (Element imgElement : imgElements) {
                 String imageUrl = imgElement.absUrl("src");
@@ -55,65 +44,87 @@ public class ImageCrawler {
                 downloadImage(imageUrl);
             }
         } catch (IOException e) {
-
+            e.printStackTrace();
         }
     }
+
     private static String getImageNameFromUrl(String imageUrl) {
         String[] parts = imageUrl.split("/");
         String imageName = parts[parts.length - 1];
         return imageName.substring(0, imageName.lastIndexOf('.'));
     }
+
     public void downloadImage(String imageUrl) {
         try {
-            httpClient = HttpClientBuilder.create().build();
-            request = new HttpGet(imageUrl);
-            request.setHeader("User-Agent", USER_AGENT);
-            response = httpClient.execute(request);
-            entity = response.getEntity();
-            if (entity != null) {
-                try (InputStream inputStream = entity.getContent()) {
-                    String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
-                    String filePath = folderPath + File.separator + fileName;
-                    try (OutputStream outputStream = new FileOutputStream(filePath)) {
-                        byte[] buffer = new byte[1024];
+            if (folderProvider == null) {
+                System.err.println("Error: folderProvider is null");
+                return;
+            }
+
+            // Sử dụng folderProvider.getFolderPath() để truy cập đường dẫn folder
+            String folderPath = folderProvider.getFolderPath(mangaTitle, chapterNumber);
+            System.out.println("Downloading images from: " + folderPath);
+
+            HttpURLConnection connection = (HttpURLConnection) new URL(imageUrl).openConnection();
+            connection.setRequestProperty("User-Agent", USER_AGENT);
+
+            // Kiểm tra xem connection có thành công không
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                try (InputStream inputStream = connection.getInputStream()) {
+                    // Tạo đường dẫn cho tệp ảnh cần lưu.
+                    String fileName = Paths.get(imageUrl).getFileName().toString();
+                    String destinationPath = Paths.get(folderPath, fileName).toString();
+
+                    try (OutputStream outputStream = new FileOutputStream(destinationPath)) {
+                        byte[] buffer = new byte[2048];
                         int bytesRead;
                         while ((bytesRead = inputStream.read(buffer)) != -1) {
                             outputStream.write(buffer, 0, bytesRead);
                         }
-                        System.out.println("Downloading "+fileName);
+                        System.out.println("Downloading " + fileName);
                     }
                 }
+            } else {
+                System.err.println("Failed to download image. Response Code: " + responseCode);
             }
-            EntityUtils.consume(entity);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    public void imageDownloader2(String imageUrl){
-        folderPath = "image/";
+
+    public void imageDownloader2(String imageUrl) {
         try {
-            String imageName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+            if (folderProvider == null) {
+                System.err.println("Error: folderProvider is null");
+                return;
+            }
+
+            // Sử dụng folderProvider.getFolderPath() để truy cập đường dẫn folder
+            String folderPath = folderProvider.getFolderPath(mangaTitle, chapterNumber);
+            System.out.println("Downloading images from: " + folderPath);
+
+            String imageName = Paths.get(imageUrl).getFileName().toString();
             imageName = imageName.replaceAll("[^a-zA-Z0-9.-]", "");
             imageName = imageName.split("\\.")[0];
+
             URL url = new URL(imageUrl);
-            InputStream inputStream = url.openStream();
-            // Tạo đường dẫn cho tệp ảnh cần lưu.
-            String destinationPath = folderPath +imageName+".jpg";
-            // Mở tệp đích để lưu ảnh.
-            OutputStream outputStream = new FileOutputStream(destinationPath);
-            byte[] buffer = new byte[2048];
-            int length;
-            while ((length = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, length);
+            try (InputStream inputStream = url.openStream()) {
+                // Tạo đường dẫn cho tệp ảnh cần lưu.
+                String destinationPath = Paths.get(folderPath, imageName + ".jpg").toString();
+                // Mở tệp đích để lưu ảnh.
+                try (OutputStream outputStream = new FileOutputStream(destinationPath)) {
+                    byte[] buffer = new byte[2048];
+                    int length;
+                    while ((length = inputStream.read(buffer)) != -1) {
+                        outputStream.write(buffer, 0, length);
+                    }
+                    // Đóng luồng đầu vào và đầu ra.
+                    System.out.println("Tải ảnh thành công và lưu tại: " + destinationPath);
+                }
             }
-            // Đóng luồng đầu vào và đầu ra.
-            inputStream.close();
-            outputStream.close();
-            System.out.println("Tải ảnh thành công và lưu tại: " + destinationPath);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
 }

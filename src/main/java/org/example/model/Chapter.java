@@ -6,16 +6,16 @@ import java.util.LinkedList;
 public class Chapter {
     private String name;
     private String date;
-    private LinkedList<Image> imageLinkedList;
+    private LinkedList<String> imagePathLinkedList;
 
     public Chapter() {
 
     }
 
-    public Chapter(String name, String date, LinkedList<Image> imageLinkedList) {
+    public Chapter(String name, String date, LinkedList<String> imagePathLinkedList) {
         this.name = name;
         this.date = date;
-        this.imageLinkedList = imageLinkedList;
+        this.imagePathLinkedList = imagePathLinkedList;
     }
 
     public String getName() {
@@ -34,11 +34,4 @@ public class Chapter {
         this.date = date;
     }
 
-    public LinkedList<Image> getImageLinkedList() {
-        return imageLinkedList;
-    }
-
-    public void setImageLinkedList(LinkedList<Image> imageLinkedList) {
-        this.imageLinkedList = imageLinkedList;
-    }
 }
