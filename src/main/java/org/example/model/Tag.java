@@ -1,6 +1,7 @@
 package org.example.model;
 
 public class Tag {
+    private String tagID;
     private String name;
     private String description;
 

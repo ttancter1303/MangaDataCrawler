@@ -1,0 +1,23 @@
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+
+    <session-factory>
+        <!-- Cấu hình kết nối cơ sở dữ liệu -->
+        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/MangaServer</property>
+        <property name="hibernate.connection.username">root</property>
+        <property name="hibernate.connection.password"></property>
+
+        <!-- Cấu hình hiển thị các câu lệnh SQL được tạo ra -->
+        <property name="hibernate.show_sql">true</property>
+
+        <!-- Cấu hình tự động tạo bảng (true nếu muốn Hibernate tự động tạo bảng) -->
+        <property name="hibernate.hbm2ddl.auto">update</property>
+
+        <!-- Các entity package -->
+        <mapping class="your.package.Author"/>
+        <mapping class="your.package.Manga"/>
+        <!-- Thêm các entity khác nếu có -->
+
+    </session-factory>
+</hibernate-configuration>

@@ -4,6 +4,7 @@ import java.awt.*;
 import java.util.LinkedList;
 
 public class Chapter {
+    private String chapterID;
     private String name;
     private String date;
     private LinkedList<String> imagePathLinkedList;

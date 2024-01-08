@@ -6,9 +6,11 @@ public class Manga {
 
     public Manga() {
     }
+    private String MangaID;
     private String name;
     private String description;
     private Author author;
+    private String thumbnailImg;
     private List<Tag> listTag;
     private List<Chapter> listChapter;
     private boolean status;

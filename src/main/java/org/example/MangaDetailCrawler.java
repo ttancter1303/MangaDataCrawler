@@ -69,7 +69,7 @@ public class MangaDetailCrawler implements FolderProvider {
                 Elements content = document.select("div.content");
                 Element titleElement = document.selectFirst("span.title");
                 Element listWrapElement = document.selectFirst("div.list-chapters");
-                Element authorElement = document.selectFirst("<a.color-green label label-info");
+                Element authorElement = document.selectFirst("a.color-green label label-info");
 
 
                 if (authorElement != null) {
