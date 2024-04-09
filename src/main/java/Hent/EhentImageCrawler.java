@@ -14,17 +14,10 @@ public class EhentImageCrawler {
     public static void main(String[] args) {
         ImageCrawler2 imageCrawler = new ImageCrawler2();
         ArrayList<String> urls = new ArrayList<>();
-        urls.add("https://e-hentai.org/g/2783851/33090713e0/");
-        urls.add("https://e-hentai.org/g/2822602/ead119c02a/");
-        urls.add("https://e-hentai.org/g/2721842/5c6078a4ee/");
-        urls.add("https://e-hentai.org/g/2721842/5c6078a4ee/?p=1");
-        urls.add("https://e-hentai.org/g/2566087/9c4b611535/");
-        urls.add("https://e-hentai.org/g/2566087/9c4b611535/?p=1");
-        urls.add("https://e-hentai.org/g/2566087/9c4b611535/?p=2");
-        urls.add("https://e-hentai.org/g/2566087/9c4b611535/?p=3");
-        urls.add("https://e-hentai.org/g/2566087/9c4b611535/?p=4");
-        urls.add("https://e-hentai.org/g/2566087/9c4b611535/?p=5");
-        urls.add("https://e-hentai.org/g/2566087/9c4b611535/?p=6");
+        urls.add("https://e-hentai.org/g/2597614/f88a28fa98/");
+        for (int i=1;i<23;i++){
+            urls.add("https://e-hentai.org/g/2597614/f88a28fa98/?p="+i);
+        }
 
 //        urls.add("https://e-hentai.org/g/2769377/5ef501e768/");
 //        urls.add("https://e-hentai.org/g/2755666/f56511e05e/");
