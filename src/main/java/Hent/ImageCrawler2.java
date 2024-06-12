@@ -86,9 +86,7 @@ public class ImageCrawler2 {
             imageName = imageName.split("\\.")[0];
             URL url = new URL(imageUrl);
             InputStream inputStream = url.openStream();
-            // Tạo đường dẫn cho tệp ảnh cần lưu.
             String destinationPath = folderPath +imageName+".jpg";
-            // Mở tệp đích để lưu ảnh.
             OutputStream outputStream = new FileOutputStream(destinationPath);
             byte[] buffer = new byte[2048];
             int length;

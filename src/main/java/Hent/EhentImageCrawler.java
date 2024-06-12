@@ -14,9 +14,9 @@ public class EhentImageCrawler {
     public static void main(String[] args) {
         ImageCrawler2 imageCrawler = new ImageCrawler2();
         ArrayList<String> urls = new ArrayList<>();
-        urls.add("https://e-hentai.org/g/2597614/f88a28fa98/");
-        for (int i=1;i<23;i++){
-            urls.add("https://e-hentai.org/g/2597614/f88a28fa98/?p="+i);
+        urls.add("https://e-hentai.org/g/2899129/29b4643655/");
+        for (int i=1;i<11;i++){
+            urls.add("https://e-hentai.org/g/2899129/29b4643655/?p="+i);
         }
 
 //        urls.add("https://e-hentai.org/g/2769377/5ef501e768/");
