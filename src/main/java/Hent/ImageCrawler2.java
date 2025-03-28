@@ -4,103 +4,72 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Set;
+import java.nio.file.Paths;
 
 public class ImageCrawler2 {
-    private static final String USER_AGENT = "Mozilla/5.0 (compatible; YandexAccessibilityBot/3.0; +http://yandex.com/bots)";
-    HttpClient httpClient;
-    HttpGet request;
-    Document document;
-    Elements imgElements;
-    Elements imageElements;
-    HttpResponse response;
-    HttpEntity entity;
-    String folderPath = "E:/DEV/ImageCrawler/image";
-    public void crawlImages(String url) throws IOException {
-        Set<String> imageUrls = new HashSet<>();
-        try {
-            document = Jsoup.connect(url).userAgent(USER_AGENT).get();
-            imgElements = document.select("img#img");
+    private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
 
-            for (Element imgElement : imgElements) {
-                String imageUrl = imgElement.absUrl("src");
-                if (!imageUrl.isEmpty()) {
-                    imageUrls.add(imageUrl);
-                }
-            }
+    private final String folderPath = "E:/DEV/ImageCrawler/image";
 
-            for (String imageUrl : imageUrls) {
-                downloadImage(imageUrl);
-            }
-        } catch (IOException e) {
-
-        }
-    }
     private static String getImageNameFromUrl(String imageUrl) {
         String[] parts = imageUrl.split("/");
         String imageName = parts[parts.length - 1];
-        return imageName.substring(0, imageName.lastIndexOf('.'));
+
+        int dotIndex = imageName.lastIndexOf('.');
+        return (dotIndex != -1) ? imageName.substring(0, dotIndex) : imageName;
     }
+
     public void downloadImage(String imageUrl) {
         try {
-            httpClient = HttpClientBuilder.create().build();
-            request = new HttpGet(imageUrl);
-            request.setHeader("User-Agent", USER_AGENT);
-            response = httpClient.execute(request);
-            entity = response.getEntity();
-            if (entity != null) {
-                try (InputStream inputStream = entity.getContent()) {
-                    String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
-                    String filePath = folderPath + File.separator + fileName;
-                    try (OutputStream outputStream = new FileOutputStream(filePath)) {
-                        byte[] buffer = new byte[1024];
-                        int bytesRead;
-                        while ((bytesRead = inputStream.read(buffer)) != -1) {
-                            outputStream.write(buffer, 0, bytesRead);
-                        }
-                        System.out.println("Downloading "+fileName);
-                    }
-                }
-            }
+            String fileName = Paths.get(new URL(imageUrl).getPath()).getFileName().toString();
+            String destinationFile = Paths.get(folderPath, fileName).toString();
 
-            EntityUtils.consume(entity);
-        } catch (IOException e) {
-//            e.printStackTrace();
-        }
-    }
-    public void imageDownloader2(String imageUrl){
-        folderPath = "image/";
-        try {
-            String imageName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
-            imageName = imageName.replaceAll("[^a-zA-Z0-9.-]", "");
-            imageName = imageName.split("\\.")[0];
             URL url = new URL(imageUrl);
-            InputStream inputStream = url.openStream();
-            String destinationPath = folderPath +imageName+".jpg";
-            OutputStream outputStream = new FileOutputStream(destinationPath);
-            byte[] buffer = new byte[2048];
-            int length;
-            while ((length = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, length);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestProperty("User-Agent", USER_AGENT);
+
+            try (InputStream in = new BufferedInputStream(connection.getInputStream());
+                 FileOutputStream out = new FileOutputStream(destinationFile)) {
+
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = in.read(buffer)) != -1) {
+                    out.write(buffer, 0, bytesRead);
+                }
+
+                System.out.println("Image downloaded to " + destinationFile);
             }
-            // Đóng luồng đầu vào và đầu ra.
-            inputStream.close();
-            outputStream.close();
-            System.out.println("Tải ảnh thành công và lưu tại: " + destinationPath);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error downloading image: " + e.getMessage());
         }
     }
 
+    public void imageDownloader2(String imageUrl) {
+        try {
+            String imageName = getImageNameFromUrl(imageUrl).replaceAll("[^a-zA-Z0-9.-]", "");
+            String destinationPath = Paths.get(folderPath, imageName + ".jpg").toString();
 
+            URL url = new URL(imageUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestProperty("User-Agent", USER_AGENT);
+
+            try (InputStream inputStream = connection.getInputStream();
+                 OutputStream outputStream = new FileOutputStream(destinationPath)) {
+
+                byte[] buffer = new byte[8192];
+                int length;
+                while ((length = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, length);
+                }
+
+                System.out.println("Tải ảnh thành công và lưu tại: " + destinationPath);
+            }
+        } catch (IOException e) {
+            System.err.println("Lỗi khi tải ảnh: " + e.getMessage());
+        }
+    }
 }
